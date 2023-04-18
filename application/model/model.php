@@ -40,7 +40,7 @@ class Model
         return $problems;
     }
 
-    private function getPaymentsByDate(string $paymentDate): array {
+    public function getPaymentsByDate(string $paymentDate): array {
         $sql = "SELECT * FROM payments WHERE DATE( paymentDate ) = :paymentDate";
         $query = $this->db->prepare($sql);
         $parameters = [":paymentDate" => $paymentDate];
