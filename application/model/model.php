@@ -3,6 +3,11 @@
 class Model
 {
     public const DATE_TIME_FORMAT = "Y-m-d H:i:s";
+    public const ISSUE_LABELS = [
+        1 => '1 - Duplicate Payment',
+        2 => '2 - Negative Payment Amount',
+        3 => '3 - Invalid Payment Date'
+    ];
     private const PAYMENT_ASSIGNED = "ASSIGNED";
     private const PAYMENT_PARTIALY_ASSIGNED = "PARTIALLY_ASSIGNED";
     private const LOAN_PAYED = "PAYED";
@@ -20,23 +25,22 @@ class Model
         }
     }
 
-    public function makePayment(string $firstname, string $lastname, string $paymentDate, string $amount, string $description, string $refId) : void
+    public function makePayment(string $firstname, string $lastname, string $paymentDate, string $amount, string $description, string $refId) : bool|array
     {
         $problems = $this->validatePayment($refId, $amount, $paymentDate);
         $loan_reference = $this::pregMatchLoanReference($description);
-
 
         if(count($problems) == 0) {
             $this->insertPayment($firstname, $lastname, $paymentDate, $amount, $description, $loan_reference, $refId, $this::PAYMENT_ASSIGNED);
             $this->checkStatusAfterPayment($loan_reference);
 
-            return;
+            return true;
         }
 
-        print_r($problems);
+        return $problems;
     }
 
-    public function getPaymentsByDate(string $paymentDate): array {
+    private function getPaymentsByDate(string $paymentDate): array {
         $sql = "SELECT * FROM payments WHERE DATE( paymentDate ) = :paymentDate";
         $query = $this->db->prepare($sql);
         $parameters = [":paymentDate" => $paymentDate];
@@ -53,17 +57,22 @@ class Model
     private function validatePayment(string $refId, string $amount, string $paymentDate) : array {
         $problems = [];
 
-        if($this->checkIfPaymentExists($refId)) $problems[] = "duplicate refId";
+        if($this->checkIfPaymentExists($refId)) $problems[] = 1;
 
-        if($this->isNegativeAmount($amount)) $problems[] = "negative amount";
+        if($this->isNegativeAmount($amount)) $problems[] = 2;
 
-        if($this->isDateInValid($paymentDate)) $problems[] = "invalid date";
+        if($this->isDateInValid($paymentDate)) $problems[] = 3;
 
         return $problems;
     }
 
     private function isDateInValid(string $paymentDate): bool  {
-        return date($this::DATE_TIME_FORMAT, strtotime($paymentDate)) == false;
+        $datetime = strtotime($paymentDate);
+        $datetimeFormated = date($this::DATE_TIME_FORMAT, $datetime);
+
+        if($datetime === false || $datetimeFormated === false) return true;
+
+        return false;
     }
 
     private function isNegativeAmount(string $amount): bool {

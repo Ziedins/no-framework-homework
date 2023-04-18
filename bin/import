@@ -1,0 +1,60 @@
+#!/usr/bin/env php
+<?php
+
+if ($argc !== 2 || in_array($argv[1], ['--help', '-help', '-h'])) {
+?>
+
+This is a command line PHP script with one option.
+
+Usage:
+<?php echo $argv[0]; ?> <option>
+
+<option> can be --file=<FILE_PATH> to display reports from a specific date.
+
+EXAMPLE IMPORT --file=public/import/payments.csv
+
+
+<?php
+} else {
+
+    define('ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
+    define('APP', ROOT . 'application' . DIRECTORY_SEPARATOR);
+    require ROOT .'application/core/controller.php';
+    require ROOT .'application/config/db.php';
+    $controller = new Controller();
+
+
+    $filePath = preg_replace('/^' . preg_quote('--file=', '/') . '/', '', $argv[1]);
+    $file = fopen($filePath, 'r');
+    if($file) {
+        //Skip header
+        fgetcsv($file);
+
+        $n = 0;
+        while (($row = fgetcsv($file)) !== false) {
+            $n++;
+            $paymentDate = $row[0];
+            $firstname = $row[1];
+            $lastname = $row[2];
+            $amount = $row[3];
+            $description = $row[5];
+            $refId = $row[6];
+
+            $rowResult = $controller->model->makePayment($firstname, $lastname, $paymentDate, $amount, $description, $refId);
+
+            if($rowResult === true) {
+                echo 'Payment #'.$n.' added successfully'.PHP_EOL;
+            } else {
+                echo 'Failed to add payment #'.$n.' due to fallowing issues'.PHP_EOL;
+                foreach ($rowResult as $issue) {
+                   echo $controller->model::ISSUE_LABELS[$issue].PHP_EOL.PHP_EOL;
+                }
+            }
+
+        }
+    } else {
+        echo 'File not loaded properly'.PHP_EOL;
+    }
+
+}
+?>
