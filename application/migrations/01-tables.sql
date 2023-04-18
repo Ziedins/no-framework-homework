@@ -1,7 +1,7 @@
 CREATE TABLE payments(
    firstname   TEXT NOT NULL
   ,lastname    TEXT NOT NULL
-  ,paymentDate TEXT NOT NULL
+  ,paymentDate DATETIME  NOT NULL
   ,amount      TEXT NOT NULL
   ,description TEXT NOT NULL
   ,refId       TEXT NOT NULL PRIMARY KEY
@@ -14,8 +14,8 @@ CREATE TABLE loans(
   ,customerId    TEXT NOT NULL
   ,reference     TEXT NOT NULL
   ,state         TEXT NOT NULL
-  ,amount_issued TEXT NOT NULL
-  ,amount_to_pay TEXT NOT NULL
+  ,amount_issued FLOAT NOT NULL
+  ,amount_to_pay FLOAT NOT NULL
 );
 
 CREATE TABLE customers(
