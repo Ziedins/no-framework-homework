@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+
+if ($argc !== 2 || in_array($argv[1], ['--help', '-help', '-h'])) {
+?>
+
+This is a command line PHP script with one option.
+
+Usage:
+<?php echo $argv[0]; ?> <option>
+
+<option> can be --date=YYYY-MM-DD to display reports from a specific date.
+
+<?php
+} else {
+
+    define('ROOT', dirname(__DIR__) . DIRECTORY_SEPARATOR);
+    define('APP', ROOT . 'application' . DIRECTORY_SEPARATOR);
+    require ROOT .'application/core/controller.php';
+    require ROOT .'application/config/db.php';
+    $controller = new Controller();
+
+
+    $date = preg_replace('/^' . preg_quote('--date=', '/') . '/', '', $argv[1]);
+
+    $payements = $controller->model->getPaymentsByDate($date);
+
+    if(empty($payements)) {
+        echo 'No payments found';
+    } else {
+        print_r($payements);
+    }
+}
+?>
